@@ -4,6 +4,10 @@ import { csv2json, fetch_data, get_item, confirm_to_reset, } from '@lib/u.js';
 
 export const pm_data = await get_pms();
 
+function infer_source_type(source_url = '') {
+	return /\.csv(?:$|[?#])/i.test(source_url) ? 'csv' : 'json';
+}
+
 export async function get_pms() {
 	let data_source = {
 		url: pm_local_csv_url,
@@ -15,6 +19,12 @@ export async function get_pms() {
 		data_source = {
 			...data_source,
 			...config.source_url,
+		};
+	} else if (import.meta.env.VITE_PM_SOURCE_URL) {
+		data_source = {
+			...data_source,
+			url: import.meta.env.VITE_PM_SOURCE_URL,
+			type: import.meta.env.VITE_PM_SOURCE_TYPE || infer_source_type(import.meta.env.VITE_PM_SOURCE_URL),
 		};
 	}
 

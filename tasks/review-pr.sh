@@ -43,6 +43,7 @@ temp_root="${TMPDIR:-/tmp}"
 worktree_dir="$(mktemp -d "${temp_root%/}/pokemongo-pr-review.XXXXXX")"
 app_log="${repo_root}/tasks/tmp/review-${safe_branch}-${timestamp}.app.log"
 image_log="${repo_root}/tasks/tmp/review-${safe_branch}-${timestamp}.img.log"
+safari_launcher="${repo_root}/tasks/tmp/review-${safe_branch}.open-in-safari.command"
 
 server_pid=""
 image_pid=""
@@ -208,7 +209,14 @@ if ! curl -fsS "${base_url}" >/dev/null 2>&1; then
 	exit 1
 fi
 
+cat > "${safari_launcher}" <<EOF
+#!/bin/zsh
+open -a Safari "${review_url}"
+EOF
+chmod +x "${safari_launcher}"
+
 echo "Review URL: ${review_url}"
+echo "Safari launcher: ${safari_launcher}"
 echo "App log: ${app_log}"
 if [[ -n "${image_pid}" ]]; then
 	echo "Image log: ${image_log}"

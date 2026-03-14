@@ -17,6 +17,59 @@ try to reset your config setting by url paramerter `reset=1`:
   make dev
   ```
 
+3. review a PR branch locally
+  ```
+  make review-pr BRANCH=tag-hide-and-baby-complement-pr
+  ```
+
+  optional: also start a local image host
+  ```
+  IMAGE_DIR=./tasks/tmp make review-pr BRANCH=tag-hide-and-baby-complement-pr
+  ```
+
+  the review script:
+  * builds the target branch in a temp `git worktree`
+  * reuses the repo `node_modules`
+  * starts the app in `dev` mode by default
+  * can pass `VITE_PM_IMAGE_BASE_URL` automatically, so you do not need to tweak image URLs in code
+  * can start a second `http-server` for local images when `IMAGE_DIR` is set or `./tasks/tmp/new-imgs` exists
+  * leaves the review server running so you can inspect the page and take screenshots manually
+
+4. keep a shared local dev branch outside your PR branches
+
+  see [`LOCAL_DEV_WORKFLOW.md`](./LOCAL_DEV_WORKFLOW.md) for the full branch model and review workflow
+
+  recommended branch roles:
+  * `main`: always matches `upstream/main`
+  * `env/local-dev`: reusable local-only dev support that you can push to your fork
+  * `feature/...`: the actual PR branch, based on `upstream/main`
+  * `test/...`: local validation branch, based on `env/local-dev` plus your feature commits
+
+  create the shared env branch once:
+  ```
+  git switch -c env/local-dev upstream/main
+  ```
+
+  keep machine-specific values in `.env.local`:
+  ```
+  cp .env.local.example .env.local
+  ```
+
+  create a test branch from `env/local-dev` and cherry-pick your feature commits:
+  ```
+  make prepare-test BRANCH=feature/my-change
+  ```
+
+  if you want to rebuild the same test branch after updating the feature branch:
+  ```
+  RESET=1 make prepare-test BRANCH=feature/my-change
+  ```
+
+  important:
+  * open PRs from `feature/...`
+  * do not open PRs from `env/local-dev`
+  * do not open PRs from `test/...`
+
 
 ## 3. For updating shiny list data:
 

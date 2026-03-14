@@ -10,6 +10,12 @@ host-image:
 build:
 	bun run build;
 
+review-pr:
+	./tasks/review-pr.sh "$(BRANCH)";
+
+prepare-test:
+	./tasks/prepare-test-branch.sh "$(BRANCH)" "$(TEST_BRANCH)";
+
 deploy: build
 	bun run deploy;
 

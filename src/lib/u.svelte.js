@@ -160,9 +160,10 @@ export function preventDefault(fn) {
 
 export const sum_array = (arr) => arr.reduce((acc, val) => acc + val, 0);
 
-const FOLDER_PATH = import.meta.env.DEV
+const FOLDER_PATH = import.meta.env.VITE_PM_IMAGE_BASE_URL
+	|| (import.meta.env.DEV
 		? `http://localhost:1111/new-imgs`
-		: `https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets`;
+		: `https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets`);
 
 export function get_pm_img_src(pid = '', shiny = true, direct_src = '') {
 	return direct_src || `${FOLDER_PATH}/${pid}${shiny ? '.s' : ''}.icon.png`;

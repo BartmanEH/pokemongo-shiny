@@ -147,12 +147,23 @@ class PokemonManager {
 
 export const pokemonStore = new PokemonManager();
 
+function infer_source_type(source_url = '') {
+	return /\.csv(?:$|[?#])/i.test(source_url) ? 'csv' : 'json';
+}
+
 function get_source() {
 	const source_url = get_item('config.source_url.url');
 	const source_type = get_item('config.source_url.type');
 
 	if (source_url && source_type) {
 		return { url: source_url, type: source_type };
+	}
+
+	if (import.meta.env.VITE_PM_SOURCE_URL) {
+		return {
+			url: import.meta.env.VITE_PM_SOURCE_URL,
+			type: import.meta.env.VITE_PM_SOURCE_TYPE || infer_source_type(import.meta.env.VITE_PM_SOURCE_URL),
+		};
 	}
 
 	return DEFAULT_PM_DATA_SOURCE || LOCAL_PM_DATA_SOURCE;

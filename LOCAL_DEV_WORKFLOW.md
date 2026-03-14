@@ -145,14 +145,14 @@ The review helper:
 - builds the branch before serving it
 - can point the app at a local image host
 - opens the correct local path for this repo: `/pokemongo-shiny/`
-- writes a Safari launcher script in `tasks/tmp` that opens the exact local review URL in Safari
+- writes a Safari launcher script in `tasks/tmp` that opens Safari to the exact local `127.0.0.1` page
 - keeps the local review server running until you stop it
 
 On the first load for a branch, use the printed URL with `?reset=1`.
 That clears stale browser config in localStorage before applying your `.env.local` defaults again.
 
 If you want Safari specifically instead of the default browser, use the printed `Safari launcher` path from the review helper.
-That launcher always targets the exact `127.0.0.1` review URL with the current query string.
+When `tasks/shiny-checklist.query.txt` exists, the Safari launcher uses that saved query string instead of the clean-start `?reset=1` URL.
 
 ### 6. Open the PR from the feature branch
 

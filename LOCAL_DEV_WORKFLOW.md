@@ -37,9 +37,20 @@ Current example:
 
 ```dotenv
 VITE_PM_IMAGE_BASE_URL=http://127.0.0.1:1111/new-imgs
+VITE_PM_SOURCE_URL=https://opensheet.elk.sh/1l1CXHdge8_2F2ifjMY71f23DJ_98Ei2QNZ9rPdBd8jQ/pm
+VITE_PM_SOURCE_TYPE=json
 ```
 
 `.env.local` is ignored by Git, so you can keep different values on each workstation.
+
+These values are used as local-only defaults:
+
+- `VITE_PM_IMAGE_BASE_URL`
+  Local image host override for dev/review runs.
+- `VITE_PM_SOURCE_URL`
+  Default custom data source for local review.
+- `VITE_PM_SOURCE_TYPE`
+  `json` or `csv` for the custom data source.
 
 ## Normal workflow
 
@@ -117,8 +128,10 @@ The review helper:
 
 - creates a temp worktree for the branch you want to inspect
 - reuses the repo `node_modules`
+- reuses your root `.env.local` by symlinking it into the temp worktree
 - builds the branch before serving it
 - can point the app at a local image host
+- opens the correct local path for this repo: `/pokemongo-shiny/`
 - keeps the local review server running until you stop it
 
 ### 6. Open the PR from the feature branch

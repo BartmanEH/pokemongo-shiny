@@ -71,6 +71,8 @@ try to reset your config setting by url paramerter `reset=1`:
   * open PRs from `feature/...`
   * do not open PRs from `env/local-dev`
   * do not open PRs from `test/...`
+  * if local review ever shows a blank page or no visible squircles, rebuild the `test/...` branch from the current `env/local-dev` and feature branch, then reopen the printed `?reset=1` URL on a fresh port
+  * keep fork-only helpers such as `tasks/shiny-checklist.query.txt` on `env/local-dev`, not on upstream PR branches
 
 
 ## 3. For updating shiny list data:

@@ -34,7 +34,7 @@ APP_MODE="${APP_MODE:-dev}"
 APP_HOST="${APP_HOST:-127.0.0.1}"
 APP_PORT="${APP_PORT:-4173}"
 IMAGE_PORT="${IMAGE_PORT:-1111}"
-REVIEW_URL_PATH="${REVIEW_URL_PATH:-/?reset=1}"
+REVIEW_URL_PATH="${REVIEW_URL_PATH:-/pokemongo-shiny/?reset=1}"
 
 repo_root="$(git rev-parse --show-toplevel)"
 timestamp="$(date +%Y%m%d-%H%M%S)"
@@ -100,6 +100,10 @@ git worktree add --detach "${worktree_dir}" "${resolved_ref}" >/dev/null
 
 if [[ ! -e "${worktree_dir}/node_modules" ]]; then
 	ln -s "${repo_root}/node_modules" "${worktree_dir}/node_modules"
+fi
+
+if [[ -f "${repo_root}/.env.local" && ! -e "${worktree_dir}/.env.local" ]]; then
+	ln -s "${repo_root}/.env.local" "${worktree_dir}/.env.local"
 fi
 
 if command -v bun >/dev/null 2>&1; then

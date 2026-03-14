@@ -30,8 +30,10 @@ try to reset your config setting by url paramerter `reset=1`:
   the review script:
   * builds the target branch in a temp `git worktree`
   * reuses the repo `node_modules`
+  * reuses your root `.env.local` inside the temp worktree
   * starts the app in `dev` mode by default
   * can pass `VITE_PM_IMAGE_BASE_URL` automatically, so you do not need to tweak image URLs in code
+  * can default the app to your spreadsheet through `VITE_PM_SOURCE_URL`
   * can start a second `http-server` for local images when `IMAGE_DIR` is set or `./tasks/tmp/new-imgs` exists
   * leaves the review server running so you can inspect the page and take screenshots manually
 

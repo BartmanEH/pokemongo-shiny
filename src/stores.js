@@ -2,7 +2,19 @@ import { writable, derived } from 'svelte/store';
 import { recorder, } from '@lib/recorder.svelte.js';
 import { get_item, set_item, } from '@lib/u.js';
 
-let qs = new URL(location).searchParams;
+let url = new URL(location.href);
+let qs = url.searchParams;
+
+if (qs.get('reset') === '1') {
+	localStorage.clear();
+}
+
+function infer_source_type(source_url = '') {
+	return /\.csv(?:$|[?#])/i.test(source_url) ? 'csv' : 'json';
+}
+
+const env_source_url = import.meta.env.VITE_PM_SOURCE_URL || '';
+const env_source_type = import.meta.env.VITE_PM_SOURCE_TYPE || infer_source_type(env_source_url);
 
 let init_config = {
 	status: '',
@@ -40,7 +52,7 @@ export const default_config = {
 	grid_colors: ['#dddddd', '#dada0b', '#a1a112', ],
 	// colors: ['#dada0b', '#a1a112'],
 	gradient_colors: ['#000000', '#63452c', ],
-	source_url: { type: 'json', url: '', },
+	source_url: { type: env_source_type, url: env_source_url, },
 }
 
 export const config = writable(

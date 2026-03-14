@@ -8,10 +8,12 @@ This repo uses a split workflow so local testing support does not leak into pull
   Should always match `upstream/main`.
 - `env/local-dev`
   Shared dev-support branch for local testing. Push this to your fork if you want the same helpers on multiple workstations.
+  This is the branch where fork-only helpers such as `tasks/shiny-checklist.query.txt` belong.
 - `feature/...`
   The real change you want to propose upstream. These branches should start from `upstream/main`.
 - `test/...`
   Disposable local validation branches. These start from `env/local-dev` and then cherry-pick the feature commits on top.
+  They intentionally inherit whatever is on `env/local-dev`, because they are only for local review.
 
 ## Why this exists
 
@@ -51,6 +53,14 @@ These values are used as local-only defaults:
   Default custom data source for local review.
 - `VITE_PM_SOURCE_TYPE`
   `json` or `csv` for the custom data source.
+
+## What must be true for local review to work
+
+- `env/local-dev` must stay current.
+  It contains the shared local-review support. In particular, the local baseline includes the fix that derives visible groups in JS instead of relying on `.pm-group:has(...)`, because local builds can drop those selectors and leave you with a blank-looking page or no visible squircles.
+- `.env.local` should exist before you run the review helper if you depend on the PM sheet or a local image host.
+- If you want the local-dev support, review `test/...`, not the raw `feature/...` or PR branch.
+  The raw feature branch is the upstream proposal. The `test/...` branch is the local-review version.
 
 ## Normal workflow
 
@@ -112,6 +122,9 @@ If the feature branch changes later, rebuild the test branch:
 RESET=1 make prepare-test BRANCH=feature/my-change
 ```
 
+If `env/local-dev` changes later, rebuild the test branch too.
+Do not keep testing an old `test/...` branch after changing the dev baseline.
+
 ### 5. Run the review environment
 
 ```sh
@@ -134,14 +147,79 @@ The review helper:
 - opens the correct local path for this repo: `/pokemongo-shiny/`
 - keeps the local review server running until you stop it
 
+On the first load for a branch, use the printed URL with `?reset=1`.
+That clears stale browser config in localStorage before applying your `.env.local` defaults again.
+
 ### 6. Open the PR from the feature branch
 
 Open PRs from `feature/...`, never from `env/local-dev` or `test/...`.
+
+## Troubleshooting
+
+### Blank page or "no squircles"
+
+This is almost always a local review setup issue, not a reason to panic about the feature branch.
+
+Check these in order:
+
+1. Rebuild the local test branch from the current dev baseline and current feature branch:
+
+```sh
+RESET=1 make prepare-test BRANCH=feature/my-change
+```
+
+2. Start a fresh review server, preferably on a fresh port so you are not looking at an older stale run:
+
+```sh
+APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
+```
+
+3. Open the exact review URL with `?reset=1` on the first load:
+
+```text
+http://127.0.0.1:4177/pokemongo-shiny/?reset=1
+```
+
+4. Make sure you are testing the `test/...` branch if you need `env/local-dev` support.
+
+Symptoms this usually fixes:
+
+- app shell loads but no groups are visible
+- data appears missing even though the PM sheet is valid
+- local page works on one branch but a stale local test run looks blank on another
+
+### Wrong data source
+
+If the page loads but is using the wrong spreadsheet or old local settings:
+
+- make sure `.env.local` exists
+- make sure it sets `VITE_PM_SOURCE_URL` and `VITE_PM_SOURCE_TYPE`
+- load the page once with `?reset=1`
+
+### Wrong images
+
+If the page loads but images are wrong:
+
+- set `VITE_PM_IMAGE_BASE_URL` in `.env.local`, or
+- run review with `IMAGE_DIR=...`
+
+Example:
+
+```sh
+IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
+```
+
+### VS Code clutter in `tasks/tmp`
+
+`tasks/tmp` is intentionally ignored by Git and is only for throwaway logs, screenshots, and review artifacts.
+On `env/local-dev`, `.vscode/settings.json` enables `explorer.excludeGitIgnore`, so those ignored files should stay hidden in Explorer after a reload.
 
 ## Files in this workflow
 
 - `.env.local.example`
   Starter local env config.
+- `tasks/shiny-checklist.query.txt`
+  Optional fork-only helper file. Keep this on `env/local-dev`, not on upstream PR branches.
 - `tasks/prepare-test-branch.sh`
   Creates a `test/...` branch from `env/local-dev` and cherry-picks feature commits.
 - `tasks/review-pr.sh`
@@ -161,7 +239,7 @@ git switch -c feature/my-change upstream/main
 make prepare-test BRANCH=feature/my-change
 
 # run local review
-IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
+APP_MODE=preview APP_PORT=4177 IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
 
 # open PR from feature/my-change
 ```

@@ -20,6 +20,7 @@ Environment:
   IMAGE_PORT=1111           port for the optional image server
   REVIEW_URL_PATH=...       default: /?reset=1
   SAFARI_QUERY_FILE=...     optional query file for the Safari launcher
+  PROMPT_FOR_QUERY_UPDATE=1 ask whether to refresh the Safari query from a URL
   KEEP_WORKTREE=1           keep the temp worktree after the script exits
 EOF
 }
@@ -36,6 +37,7 @@ APP_HOST="${APP_HOST:-127.0.0.1}"
 APP_PORT="${APP_PORT:-4173}"
 IMAGE_PORT="${IMAGE_PORT:-1111}"
 REVIEW_URL_PATH="${REVIEW_URL_PATH:-/pokemongo-shiny/?reset=1}"
+PROMPT_FOR_QUERY_UPDATE="${PROMPT_FOR_QUERY_UPDATE:-1}"
 
 repo_root="$(git rev-parse --show-toplevel)"
 timestamp="$(date +%Y%m%d-%H%M%S)"
@@ -95,6 +97,71 @@ function resolve_ref() {
 	echo "Could not resolve branch or ref: ${ref}" >&2
 	exit 1
 }
+
+function save_safari_query_from_url() {
+	local source_url="$1"
+	local resolved_url=""
+	local safari_query=""
+
+	if [[ -z "${source_url}" ]]; then
+		return 1
+	fi
+
+	if ! resolved_url="$(curl -LsS -o /dev/null -w '%{url_effective}\n' "${source_url}")"; then
+		echo "Could not resolve Safari query URL: ${source_url}" >&2
+		return 1
+	fi
+
+	if [[ "${resolved_url}" != *\?* ]]; then
+		echo "Resolved URL has no query string: ${resolved_url}" >&2
+		return 1
+	fi
+
+	safari_query="?${resolved_url#*\?}"
+	mkdir -p "$(dirname "${SAFARI_QUERY_FILE}")"
+	printf '%s\n' "${safari_query}" > "${SAFARI_QUERY_FILE}"
+
+	echo "Saved Safari query file: ${SAFARI_QUERY_FILE}"
+	echo "Resolved Safari query from: ${resolved_url}"
+}
+
+function maybe_update_safari_query_file() {
+	local reply=""
+	local source_url=""
+
+	if [[ "${PROMPT_FOR_QUERY_UPDATE}" == "0" ]]; then
+		return
+	fi
+
+	if [[ ! -t 0 || ! -t 1 ]]; then
+		return
+	fi
+
+	printf "Update Safari query from TinyURL or another URL? [y/N] " > /dev/tty
+	if ! read -r reply < /dev/tty; then
+		return
+	fi
+
+	case "${reply}" in
+		[Yy]|[Yy][Ee][Ss])
+			printf "Paste TinyURL or full URL: " > /dev/tty
+			if ! read -r source_url < /dev/tty; then
+				return
+			fi
+			source_url="${source_url//$'\r'/}"
+			source_url="${source_url// /}"
+			if [[ -z "${source_url}" ]]; then
+				echo "No URL entered. Keeping existing Safari query file."
+				return
+			fi
+			if ! save_safari_query_from_url "${source_url}"; then
+				echo "Keeping existing Safari query file." >&2
+			fi
+			;;
+	esac
+}
+
+maybe_update_safari_query_file
 
 resolved_ref="$(resolve_ref "${branch_ref}")"
 

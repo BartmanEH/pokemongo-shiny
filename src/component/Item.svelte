@@ -5,9 +5,10 @@
 
 	let { pm, status, handle_click_pm, } = $props();
 
-	let folder_path = import.meta.env.DEV
-		? `http://localhost:1111/new-imgs`
-		: `https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets`;
+	let folder_path = import.meta.env.VITE_PM_IMAGE_BASE_URL
+		|| (import.meta.env.DEV
+			? `http://localhost:1111/new-imgs`
+			: `https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets`);
 
 	let tags_class = pm.tag.map(tag => ` tag-${tag}`).join('');
 

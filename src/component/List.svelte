@@ -37,6 +37,9 @@
 			(i, index) => i ? `visible-status-${index}` : ''
 		).join(' ')
 	);
+	const visible_groups = $derived.by(() => groups.filter(group =>
+		group.pms.some(pm => status_visibility[Number(status_map[pm.index] || 0)])
+	));
 
 	$effect(() => {
 	  set_item('status_visibility', $state.snapshot(status_visibility));
@@ -97,8 +100,8 @@
 		max-width:{$config.maxwidth}
 		{status_visibility_class}"
 	>
-		{#each groups as group, index}
-			<div class="pm-group position:relative display:none flex-wrap:wrap place-content:center gap:.5em">
+		{#each visible_groups as group, index}
+			<div class="pm-group position:relative display:flex flex-wrap:wrap place-content:center gap:.5em">
 				<!--
 				<div class="position:absolute color:#0003">
 					{group.label}
@@ -135,13 +138,6 @@
 	&:not(.visible-status-2) :global(.pm.status-2),
 	&:not(.visible-status-3) :global(.pm.status-3) {
 		display: none;
-	}
-
-	&.visible-status-0 .pm-group:has(.pm.status-0),
-	&.visible-status-1 .pm-group:has(.pm.status-1),
-	&.visible-status-2 .pm-group:has(.pm.status-2),
-	&.visible-status-3 .pm-group:has(.pm.status-3) {
-		display: flex;
 	}
 }
 

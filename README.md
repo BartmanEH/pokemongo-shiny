@@ -36,7 +36,7 @@ try to reset your config setting by url paramerter `reset=1`:
   * can default the app to your spreadsheet through `VITE_PM_SOURCE_URL`
   * can start a second `http-server` for local images when `IMAGE_DIR` is set or `./tasks/tmp/new-imgs` exists
   * writes a Safari launcher script in `tasks/tmp`; when `tasks/shiny-checklist.query.txt` exists, it opens Safari with that saved query string on the local `127.0.0.1` page
-  * can prompt you to refresh that saved Safari query by pasting a TinyURL or full URL
+  * can prompt you to refresh that saved Safari query either by pasting a TinyURL/full URL or by pulling the hyperlink target from cell `B2` of the checklist sheet
   * leaves the review server running so you can inspect the page and take screenshots manually
 
 4. keep a shared local dev branch outside your PR branches

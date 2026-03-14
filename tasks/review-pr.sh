@@ -20,7 +20,7 @@ Environment:
   IMAGE_PORT=1111           port for the optional image server
   REVIEW_URL_PATH=...       default: /?reset=1
   SAFARI_QUERY_FILE=...     optional query file for the Safari launcher
-  PROMPT_FOR_QUERY_UPDATE=1 ask whether to refresh the Safari query from a URL
+  PROMPT_FOR_QUERY_UPDATE=1 ask whether to refresh the Safari query from a URL or sheet B2
   KEEP_WORKTREE=1           keep the temp worktree after the script exits
 EOF
 }
@@ -48,6 +48,7 @@ app_log="${repo_root}/tasks/tmp/review-${safe_branch}-${timestamp}.app.log"
 image_log="${repo_root}/tasks/tmp/review-${safe_branch}-${timestamp}.img.log"
 safari_launcher="${repo_root}/tasks/tmp/review-${safe_branch}.open-in-safari.command"
 SAFARI_QUERY_FILE="${SAFARI_QUERY_FILE:-${repo_root}/tasks/shiny-checklist.query.txt}"
+SAFARI_QUERY_B2_XLSX_URL="${SAFARI_QUERY_B2_XLSX_URL:-https://docs.google.com/spreadsheets/d/1qNMvXxhbTrVKoE5p9nUmgNo1J0ygHpTaU-_zOgV75Is/export?format=xlsx&gid=0}"
 
 server_pid=""
 image_pid=""
@@ -125,6 +126,45 @@ function save_safari_query_from_url() {
 	echo "Resolved Safari query from: ${resolved_url}"
 }
 
+function save_safari_query_from_sheet_b2() {
+	local temp_xlsx=""
+	local relation_id=""
+	local source_url=""
+
+	temp_xlsx="$(mktemp "${temp_root%/}/shiny-checklist-b2.XXXXXX.xlsx")"
+	if ! curl -LfsS "${SAFARI_QUERY_B2_XLSX_URL}" -o "${temp_xlsx}"; then
+		rm -f "${temp_xlsx}"
+		echo "Could not download checklist sheet export: ${SAFARI_QUERY_B2_XLSX_URL}" >&2
+		return 1
+	fi
+
+	relation_id="$(
+		unzip -p "${temp_xlsx}" xl/worksheets/sheet1.xml 2>/dev/null |
+			perl -0ne 'if (/<hyperlink\b[^>]*\bref="B2"[^>]*\br:id="([^"]+)"|<hyperlink\b[^>]*\br:id="([^"]+)"[^>]*\bref="B2"/s) { print $1 || $2 }'
+	)"
+
+	if [[ -z "${relation_id}" ]]; then
+		rm -f "${temp_xlsx}"
+		echo "Could not find hyperlink relationship for B2 in the checklist sheet export." >&2
+		return 1
+	fi
+
+	source_url="$(
+		RELATION_ID="${relation_id}" unzip -p "${temp_xlsx}" xl/worksheets/_rels/sheet1.xml.rels 2>/dev/null |
+			perl -0ne 'my $id = $ENV{RELATION_ID}; if (/<Relationship\b[^>]*\bId="\Q$id\E"[^>]*\bTarget="([^"]+)"|<Relationship\b[^>]*\bTarget="([^"]+)"[^>]*\bId="\Q$id\E"/s) { print $1 || $2 }'
+	)"
+
+	rm -f "${temp_xlsx}"
+
+	if [[ -z "${source_url}" ]]; then
+		echo "Could not resolve the B2 hyperlink target from the checklist sheet export." >&2
+		return 1
+	fi
+
+	echo "Pulled Safari query source from checklist sheet B2: ${source_url}"
+	save_safari_query_from_url "${source_url}"
+}
+
 function maybe_update_safari_query_file() {
 	local reply=""
 	local source_url=""
@@ -137,13 +177,13 @@ function maybe_update_safari_query_file() {
 		return
 	fi
 
-	printf "Update Safari query from TinyURL or another URL? [y/N] " > /dev/tty
+	printf "Refresh Safari query? [u=URL, b=B2, N=keep] " > /dev/tty
 	if ! read -r reply < /dev/tty; then
 		return
 	fi
 
 	case "${reply}" in
-		[Yy]|[Yy][Ee][Ss])
+		[Uu]|[Uu][Rr][Ll]|[Yy]|[Yy][Ee][Ss])
 			printf "Paste TinyURL or full URL: " > /dev/tty
 			if ! read -r source_url < /dev/tty; then
 				return
@@ -155,6 +195,11 @@ function maybe_update_safari_query_file() {
 				return
 			fi
 			if ! save_safari_query_from_url "${source_url}"; then
+				echo "Keeping existing Safari query file." >&2
+			fi
+			;;
+		[Bb]|[Bb]2)
+			if ! save_safari_query_from_sheet_b2; then
 				echo "Keeping existing Safari query file." >&2
 			fi
 			;;

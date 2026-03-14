@@ -19,6 +19,7 @@ Environment:
   IMAGE_BASE_URL=...        explicit image base URL passed to Vite
   IMAGE_PORT=1111           port for the optional image server
   REVIEW_URL_PATH=...       default: /?reset=1
+  SAFARI_QUERY_FILE=...     optional query file for the Safari launcher
   KEEP_WORKTREE=1           keep the temp worktree after the script exits
 EOF
 }
@@ -44,6 +45,7 @@ worktree_dir="$(mktemp -d "${temp_root%/}/pokemongo-pr-review.XXXXXX")"
 app_log="${repo_root}/tasks/tmp/review-${safe_branch}-${timestamp}.app.log"
 image_log="${repo_root}/tasks/tmp/review-${safe_branch}-${timestamp}.img.log"
 safari_launcher="${repo_root}/tasks/tmp/review-${safe_branch}.open-in-safari.command"
+SAFARI_QUERY_FILE="${SAFARI_QUERY_FILE:-${repo_root}/tasks/shiny-checklist.query.txt}"
 
 server_pid=""
 image_pid=""
@@ -195,6 +197,8 @@ server_pid=$!
 
 base_url="http://${APP_HOST}:${APP_PORT}"
 review_url="${base_url}${REVIEW_URL_PATH}"
+review_page_path="${REVIEW_URL_PATH%%\?*}"
+safari_url="${review_url}"
 
 echo "Waiting for ${base_url}"
 for _ in {1..30}; do
@@ -209,13 +213,24 @@ if ! curl -fsS "${base_url}" >/dev/null 2>&1; then
 	exit 1
 fi
 
+if [[ -f "${SAFARI_QUERY_FILE}" ]]; then
+	safari_query="$(tr -d '\r\n' < "${SAFARI_QUERY_FILE}")"
+	if [[ -n "${safari_query}" ]]; then
+		if [[ "${safari_query}" != \?* ]]; then
+			safari_query="?${safari_query}"
+		fi
+		safari_url="${base_url}${review_page_path}${safari_query}"
+	fi
+fi
+
 cat > "${safari_launcher}" <<EOF
 #!/bin/zsh
-open -a Safari "${review_url}"
+open -a Safari "${safari_url}"
 EOF
 chmod +x "${safari_launcher}"
 
 echo "Review URL: ${review_url}"
+echo "Safari URL: ${safari_url}"
 echo "Safari launcher: ${safari_launcher}"
 echo "App log: ${app_log}"
 if [[ -n "${image_pid}" ]]; then

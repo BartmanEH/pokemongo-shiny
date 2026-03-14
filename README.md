@@ -35,6 +35,7 @@ try to reset your config setting by url paramerter `reset=1`:
   * can pass `VITE_PM_IMAGE_BASE_URL` automatically, so you do not need to tweak image URLs in code
   * can default the app to your spreadsheet through `VITE_PM_SOURCE_URL`
   * can start a second `http-server` for local images when `IMAGE_DIR` is set or `./tasks/tmp/new-imgs` exists
+  * writes a Safari launcher script in `tasks/tmp` for the exact local review URL
   * leaves the review server running so you can inspect the page and take screenshots manually
 
 4. keep a shared local dev branch outside your PR branches

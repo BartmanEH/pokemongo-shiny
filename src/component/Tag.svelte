@@ -95,10 +95,7 @@
 
 			<div class="border-right:1px|dotted height:1em align-self:center"></div>
 
-			<input type="reset" onclick={(event) => {
-				event.preventDefault();
-				reset_tags();
-			}}>
+			<input type="button" value={$_('record.reset')} onclick={reset_tags}>
 		</div>
 		<svelte:element this={style_tag}>{style}</svelte:element>
 	</div>

@@ -58,6 +58,8 @@ These values are used as local-only defaults:
 
 - `env/local-dev` must stay current.
   It contains the shared local-review support. In particular, the local baseline includes the fix that derives visible groups in JS instead of relying on `.pm-group:has(...)`, because local builds can drop those selectors and leave you with a blank-looking page or no visible squircles.
+- Run `make prepare-test` and `make review-pr` from `env/local-dev` or another branch that already contains the local-review helper files.
+  Those targets and docs are intentionally local-only and are not guaranteed to exist on `main` or on a clean PR branch.
 - `.env.local` should exist before you run the review helper if you depend on the PM sheet or a local image host.
 - If you want the local-dev support, review `test/...`, not the raw `feature/...` or PR branch.
   The raw feature branch is the upstream proposal. The `test/...` branch is the local-review version.
@@ -106,11 +108,20 @@ git switch -c feature/my-change upstream/main
 
 Make the real code changes there and commit them normally.
 
+Important:
+
+- Start the feature branch from `upstream/main`, not from `env/local-dev`.
+- If a feature branch already contains `env/local-dev` commits, do not feed it directly into `make prepare-test`.
+  Create a clean replacement branch from `main` or `upstream/main` and cherry-pick only the real feature commits onto it first.
+
 ### 4. Build a local test branch
 
 This copies the feature commits onto `env/local-dev`.
 
+Run this from `env/local-dev`:
+
 ```sh
+git switch env/local-dev
 make prepare-test BRANCH=feature/my-change
 ```
 
@@ -145,6 +156,7 @@ The review helper:
 - builds the branch before serving it
 - can point the app at a local image host
 - opens the correct local path for this repo: `/pokemongo-shiny/`
+- prints the exact `Review URL`, `Safari URL`, and `Safari launcher` path to the terminal
 - writes a Safari launcher script in `tasks/tmp` that opens Safari to the exact local `127.0.0.1` page
 - when run interactively, can ask whether the Safari query should be refreshed from:
   - a pasted TinyURL or full URL, or
@@ -155,15 +167,39 @@ On the first load for a branch, use the printed URL with `?reset=1`.
 That clears stale browser config in localStorage before applying your `.env.local` defaults again.
 
 If you want Safari specifically instead of the default browser, use the printed `Safari launcher` path from the review helper.
-When `tasks/shiny-checklist.query.txt` exists, the Safari launcher uses that saved query string instead of the clean-start `?reset=1` URL.
-If you answer `u` to the prompt, paste the TinyURL and the helper will resolve it, extract the query string, save it back to `tasks/shiny-checklist.query.txt`, and use it for Safari.
+When run interactively, the helper can generate the Safari URL at runtime by refreshing the query from a pasted TinyURL/full URL or from checklist sheet cell `B2`.
+The helper also prints the full Safari URL directly, so you can paste it into Safari yourself without opening the launcher script.
+If you answer `u` to the prompt, paste the TinyURL and the helper will resolve it, extract the query string, save it back to `tasks/shiny-checklist.query.txt`, and use that fresh query for Safari.
 If you answer `b` or `b2`, the helper downloads the checklist sheet export, reads the hyperlink target from cell `B2`, resolves that URL, and saves the extracted query string for Safari.
+If you answer `N`, or if prompting is disabled, the helper reuses the saved query from `tasks/shiny-checklist.query.txt` when that file exists.
 
 ### 6. Open the PR from the feature branch
 
 Open PRs from `feature/...`, never from `env/local-dev` or `test/...`.
 
 ## Troubleshooting
+
+### `prepare-test` conflicts immediately
+
+If `make prepare-test` immediately conflicts on local-review files such as:
+
+- `README.md`
+- `LOCAL_DEV_WORKFLOW.md`
+- `tasks/review-pr.sh`
+- `.env.local.example`
+
+then the feature branch probably started from `env/local-dev` instead of `upstream/main`.
+
+Fix it by rebuilding the feature branch on a clean base:
+
+```sh
+git switch -c feature/my-change-clean main
+git cherry-pick <feature-commit>
+git switch env/local-dev
+RESET=1 make prepare-test BRANCH=feature/my-change-clean
+```
+
+Only use the clean main-based branch for the real PR.
 
 ### Blank page or "no squircles"
 
@@ -244,11 +280,14 @@ On `env/local-dev`, `.vscode/settings.json` enables `explorer.excludeGitIgnore`,
 # create feature branch
 git switch -c feature/my-change upstream/main
 
-# after committing feature work, create local test branch
+# after committing feature work, switch to env/local-dev and create local test branch
+git switch env/local-dev
 make prepare-test BRANCH=feature/my-change
 
 # run local review
 APP_MODE=preview APP_PORT=4177 IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
+
+# paste the printed Safari URL, or run the printed Safari launcher path
 
 # open PR from feature/my-change
 ```

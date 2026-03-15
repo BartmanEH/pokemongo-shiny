@@ -150,7 +150,8 @@ function save_safari_query_from_sheet_b2() {
 	fi
 
 	source_url="$(
-		RELATION_ID="${relation_id}" unzip -p "${temp_xlsx}" xl/worksheets/_rels/sheet1.xml.rels 2>/dev/null |
+		unzip -p "${temp_xlsx}" xl/worksheets/_rels/sheet1.xml.rels 2>/dev/null |
+			RELATION_ID="${relation_id}" \
 			perl -0ne 'my $id = $ENV{RELATION_ID}; if (/<Relationship\b[^>]*\bId="\Q$id\E"[^>]*\bTarget="([^"]+)"|<Relationship\b[^>]*\bTarget="([^"]+)"[^>]*\bId="\Q$id\E"/s) { print $1 || $2 }'
 	)"
 

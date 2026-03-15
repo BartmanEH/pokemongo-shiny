@@ -7,6 +7,7 @@
 	let { tags, } = pm_data;
 
 	let cached_tags = get_item('checked_tags') || [];
+	let cap_switcher;
 
 	let is_cap = $state(get_item('filter_is_cap') || false);
 
@@ -45,6 +46,7 @@
 		is_cap = false;
 		set_item('filter_is_cap', false);
 		set_item('checked_tags', []);
+		cap_switcher.checked = false;
 		tags_cloud.forEach(tag => {
 			tag.checked = false;
 		})
@@ -61,6 +63,7 @@
 	<label class="display:inline-flex width:fit-content margin:.5em|auto">
 		<input class="switcher" type="checkbox" data-inactive="∪" data-active="∩"
 			title={is_cap ? $_('tag.intersection_selected') : $_('tag.union_selected')}
+			bind:this={cap_switcher}
 			bind:checked={is_cap}
 		/>
 	</label>

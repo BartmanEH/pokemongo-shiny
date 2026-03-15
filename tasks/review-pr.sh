@@ -21,6 +21,7 @@ Environment:
   REVIEW_URL_PATH=...       default: /?reset=1
   SAFARI_QUERY_FILE=...     optional query file for the Safari launcher
   PROMPT_FOR_QUERY_UPDATE=1 ask whether to refresh the Safari query from a URL or sheet B2
+  OPEN_SAFARI=1             launch Safari automatically after the app server is ready
   KEEP_WORKTREE=1           keep the temp worktree after the script exits
 EOF
 }
@@ -38,6 +39,7 @@ APP_PORT="${APP_PORT:-4173}"
 IMAGE_PORT="${IMAGE_PORT:-1111}"
 REVIEW_URL_PATH="${REVIEW_URL_PATH:-/pokemongo-shiny/?reset=1}"
 PROMPT_FOR_QUERY_UPDATE="${PROMPT_FOR_QUERY_UPDATE:-1}"
+OPEN_SAFARI="${OPEN_SAFARI:-0}"
 
 repo_root="$(git rev-parse --show-toplevel)"
 timestamp="$(date +%Y%m%d-%H%M%S)"
@@ -345,6 +347,8 @@ chmod +x "${safari_launcher}"
 echo "Review URL: ${review_url}"
 echo "Safari URL: ${safari_url}"
 echo "Safari launcher: ${safari_launcher}"
+echo "Run Safari now: open -a Safari \"${safari_url}\""
+echo "Run launcher script: ${safari_launcher}"
 echo "App log: ${app_log}"
 if [[ -n "${image_pid}" ]]; then
 	echo "Image log: ${image_log}"
@@ -352,6 +356,11 @@ fi
 
 if [[ -n "${IMAGE_BASE_URL}" ]]; then
 	echo "Image base URL: ${IMAGE_BASE_URL}"
+fi
+
+if [[ "${OPEN_SAFARI}" == "1" ]]; then
+	echo "Opening Safari..."
+	open -a Safari "${safari_url}"
 fi
 
 echo "Servers are running. Press Ctrl-C to stop."

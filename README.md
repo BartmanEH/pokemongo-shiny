@@ -36,6 +36,7 @@ try to reset your config setting by url paramerter `reset=1`:
   * can default the app to your spreadsheet through `VITE_PM_SOURCE_URL`
   * can start a second `http-server` for local images when `IMAGE_DIR` is set or `./tasks/tmp/new-imgs` exists
   * prints the exact `Review URL`, `Safari URL`, and `Safari launcher` path
+  * prints a copy-paste `open -a Safari "..."` command for macOS
   * writes a Safari launcher script in `tasks/tmp`; when `tasks/shiny-checklist.query.txt` exists, it opens Safari with that saved query string on the local `127.0.0.1` page
   * can prompt you to refresh that saved Safari query either by pasting a TinyURL/full URL or by pulling the hyperlink target from cell `B2` of the checklist sheet
   * leaves the review server running so you can inspect the page and take screenshots manually
@@ -45,6 +46,8 @@ try to reset your config setting by url paramerter `reset=1`:
   * if a feature branch was accidentally started from `env/local-dev`, rebuild a clean feature branch from `main` before using `make prepare-test`
   * in interactive mode, the helper can generate the Safari URL at runtime from a pasted TinyURL/full URL or from checklist sheet cell `B2`
   * if you skip the refresh prompt, or disable it, the helper falls back to the saved query file and still prints the resulting `Safari URL`
+  * the printed launcher path is a script file; to execute it on macOS, run it from Terminal/Finder or use the printed `open -a Safari "..."` command
+  * if you want the helper to launch Safari automatically, run it with `OPEN_SAFARI=1`
 
 4. keep a shared local dev branch outside your PR branches
 

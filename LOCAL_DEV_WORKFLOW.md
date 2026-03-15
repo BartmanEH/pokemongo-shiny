@@ -157,6 +157,7 @@ The review helper:
 - can point the app at a local image host
 - opens the correct local path for this repo: `/pokemongo-shiny/`
 - prints the exact `Review URL`, `Safari URL`, and `Safari launcher` path to the terminal
+- prints a copy-paste `open -a Safari "..."` command for macOS
 - writes a Safari launcher script in `tasks/tmp` that opens Safari to the exact local `127.0.0.1` page
 - when run interactively, can ask whether the Safari query should be refreshed from:
   - a pasted TinyURL or full URL, or
@@ -166,9 +167,11 @@ The review helper:
 On the first load for a branch, use the printed URL with `?reset=1`.
 That clears stale browser config in localStorage before applying your `.env.local` defaults again.
 
-If you want Safari specifically instead of the default browser, use the printed `Safari launcher` path from the review helper.
+If you want Safari specifically instead of the default browser, use the printed `open -a Safari "..."` command, run the printed launcher script from Terminal or Finder, or set `OPEN_SAFARI=1`.
 When run interactively, the helper can generate the Safari URL at runtime by refreshing the query from a pasted TinyURL/full URL or from checklist sheet cell `B2`.
 The helper also prints the full Safari URL directly, so you can paste it into Safari yourself without opening the launcher script.
+The printed launcher path is a script file, not a deep link.
+Opening that file in an editor only shows its contents; to execute it, run it from Terminal/Finder or use the printed `open -a Safari "..."` command.
 If you answer `u` to the prompt, paste the TinyURL and the helper will resolve it, extract the query string, save it back to `tasks/shiny-checklist.query.txt`, and use that fresh query for Safari.
 If you answer `b` or `b2`, the helper downloads the checklist sheet export, reads the hyperlink target from cell `B2`, resolves that URL, and saves the extracted query string for Safari.
 If you answer `N`, or if prompting is disabled, the helper reuses the saved query from `tasks/shiny-checklist.query.txt` when that file exists.
@@ -225,7 +228,19 @@ APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
 http://127.0.0.1:4177/pokemongo-shiny/?reset=1
 ```
 
-4. Make sure you are testing the `test/...` branch if you need `env/local-dev` support.
+4. If you want Safari, run one of the printed launch commands, for example:
+
+```sh
+open -a Safari "http://127.0.0.1:4177/pokemongo-shiny/?..."
+```
+
+or rerun the helper with:
+
+```sh
+OPEN_SAFARI=1 APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
+```
+
+5. Make sure you are testing the `test/...` branch if you need `env/local-dev` support.
 
 Symptoms this usually fixes:
 
@@ -287,7 +302,11 @@ make prepare-test BRANCH=feature/my-change
 # run local review
 APP_MODE=preview APP_PORT=4177 IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
 
-# paste the printed Safari URL, or run the printed Safari launcher path
+# launch Safari with the printed open command
+open -a Safari "http://127.0.0.1:4177/pokemongo-shiny/?..."
+
+# or let the helper launch Safari automatically
+OPEN_SAFARI=1 APP_MODE=preview APP_PORT=4177 IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
 
 # open PR from feature/my-change
 ```

@@ -2,6 +2,37 @@
 
 This repo uses a split workflow so local testing support does not leak into pull requests.
 
+## TL;DR
+
+For future work, start feature branches from your fork `main`.
+
+From a feature branch, the default local live test command is:
+
+```sh
+make live-test
+```
+
+That command:
+
+- assumes your current branch is the feature branch you want to review
+- rebuilds a local `test/...` branch from `env/local-dev` by default
+- opens Safari automatically unless `OPEN_SAFARI=0`
+- reuses the saved Safari query flow from `tasks/review-pr.sh`
+- prints the exact `Review URL`, `Safari URL`, and Safari launcher path
+
+Common variants:
+
+```sh
+IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' make live-test
+BRANCH=feature/my-change make live-test
+OPEN_SAFARI=0 make live-test
+USE_TEST_BRANCH=0 make live-test
+```
+
+If you are currently on `main`, `env/local-dev`, or `test/...`, pass `BRANCH=feature/...`.
+
+The rest of this file documents the more explicit branch-splitting workflow and the older `prepare-test` flow.
+
 ## Branch roles
 
 - `main`

@@ -27,6 +27,11 @@ try to reset your config setting by url paramerter `reset=1`:
   IMAGE_DIR=./tasks/tmp make review-pr BRANCH=tag-hide-and-baby-complement-pr
   ```
 
+  if you do not have a local image host on this machine, force the CDN image base instead
+  ```
+  IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' make review-pr BRANCH=tag-hide-and-baby-complement-pr
+  ```
+
   the review script:
   * builds the target branch in a temp `git worktree`
   * reuses the repo `node_modules`
@@ -44,6 +49,7 @@ try to reset your config setting by url paramerter `reset=1`:
   note:
   * run the local-review helpers from `env/local-dev`, not from a clean `main`-based PR branch
   * if a feature branch was accidentally started from `env/local-dev`, rebuild a clean feature branch from `main` before using `make prepare-test`
+  * if images are broken, the usual cause is missing local image config rather than the wrong branch; without `.env.local`, `IMAGE_DIR`, or `IMAGE_BASE_URL`, dev/review falls back to `http://127.0.0.1:1111/new-imgs`
   * in interactive mode, the helper can generate the Safari URL at runtime from a pasted TinyURL/full URL or from checklist sheet cell `B2`
   * if you skip the refresh prompt, or disable it, the helper falls back to the saved query file and still prints the resulting `Safari URL`
   * the printed launcher path is a script file; to execute it on macOS, run it from Terminal/Finder or use the printed `open -a Safari "..."` command

@@ -45,6 +45,15 @@ VITE_PM_SOURCE_TYPE=json
 
 `.env.local` is ignored by Git, so you can keep different values on each workstation.
 
+Important:
+
+- if `.env.local` is missing, and you do not pass `IMAGE_DIR` or `IMAGE_BASE_URL` to `make review-pr`, dev/review falls back to `http://127.0.0.1:1111/new-imgs`
+- that fallback is only correct when you really are running a local image host there
+- on a machine without the local image host, broken images usually mean you need either:
+  - a real `.env.local`
+  - `IMAGE_DIR=...` for the local host workflow
+  - or `IMAGE_BASE_URL=...` pointing at the CDN
+
 These values are used as local-only defaults:
 
 - `VITE_PM_IMAGE_BASE_URL`
@@ -146,6 +155,12 @@ If you also need the local image server:
 
 ```sh
 IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
+```
+
+If you do not have a local image host on this machine, force the CDN image base instead:
+
+```sh
+IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' make review-pr BRANCH=test/my-change
 ```
 
 The review helper:
@@ -260,13 +275,23 @@ If the page loads but is using the wrong spreadsheet or old local settings:
 
 If the page loads but images are wrong:
 
-- set `VITE_PM_IMAGE_BASE_URL` in `.env.local`, or
-- run review with `IMAGE_DIR=...`
+- first check whether you are accidentally falling back to `http://127.0.0.1:1111/new-imgs`
+- that fallback happens when `.env.local` is missing and you did not pass `IMAGE_DIR` or `IMAGE_BASE_URL`
+- then choose one of these:
+  - set `VITE_PM_IMAGE_BASE_URL` in `.env.local`
+  - run review with `IMAGE_DIR=...` if you really have the local image host
+  - run review with `IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets'`
 
 Example:
 
 ```sh
 IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
+```
+
+CDN example:
+
+```sh
+IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' make review-pr BRANCH=test/my-change
 ```
 
 ### VS Code clutter in `tasks/tmp`
@@ -302,11 +327,17 @@ make prepare-test BRANCH=feature/my-change
 # run local review
 APP_MODE=preview APP_PORT=4177 IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
 
+# or, if this machine does not have a local image host, use the CDN image base
+IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
+
 # launch Safari with the printed open command
 open -a Safari "http://127.0.0.1:4177/pokemongo-shiny/?..."
 
 # or let the helper launch Safari automatically
 OPEN_SAFARI=1 APP_MODE=preview APP_PORT=4177 IMAGE_DIR=./tasks/tmp make review-pr BRANCH=test/my-change
+
+# same Safari flow, but with CDN images
+OPEN_SAFARI=1 IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
 
 # open PR from feature/my-change
 ```

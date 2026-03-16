@@ -12,40 +12,56 @@ try to reset your config setting by url paramerter `reset=1`:
   make init;
   ```
 
-2. local live test from your current feature branch
+2. one-time setup on each workstation
+  run this from `env/local-dev` after cloning the repo on a new machine:
+  ```
+  make install-local-review
+  ```
+
+  that installs clone-local ignored files:
+  * `AGENTS.md`
+  * `tasks/local-live-test.sh`
+  * `tasks/local-shiny-checklist.query.txt`
+
+  if you want to refresh those local files from the tracked templates later:
+  ```
+  FORCE=1 make install-local-review
+  ```
+
+3. local live test from your current feature branch
   future feature branches should start from your fork `main`.
 
   the default local live test command is:
   ```
-  make live-test
+  OPEN_SAFARI=1 ./tasks/local-live-test.sh
   ```
 
   that command:
   * assumes your current branch is the feature branch you want to review
+  * switches into `env/local-dev` only for the review workflow
   * rebuilds a local `test/...` branch from `env/local-dev` by default
   * opens Safari automatically unless `OPEN_SAFARI=0`
-  * uses the saved Safari query flow from `tasks/review-pr.sh`
+  * uses the saved Safari query flow through the local query file
   * prints the exact `Review URL`, `Safari URL`, and Safari launcher path
 
   common variants:
   ```
-  IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' make live-test
-  BRANCH=feature/my-change make live-test
-  OPEN_SAFARI=0 make live-test
-  USE_TEST_BRANCH=0 make live-test
+  IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' OPEN_SAFARI=1 ./tasks/local-live-test.sh
+  OPEN_SAFARI=0 ./tasks/local-live-test.sh
+  OPEN_SAFARI=1 ./tasks/local-live-test.sh feature/my-change
   ```
 
   note:
-  * if you are on `main`, `env/local-dev`, or `test/...`, pass `BRANCH=feature/...`
-  * by default `make live-test` refreshes the local `test/...` branch so you do not accidentally review stale local support code
+  * if you are on `main`, `env/local-dev`, or `test/...`, pass the feature branch explicitly
+  * by default the local wrapper refreshes the local `test/...` branch so you do not accidentally review stale local support code
   * if images are broken, the usual cause is missing local image config rather than the wrong branch; without `.env.local`, `IMAGE_DIR`, or `IMAGE_BASE_URL`, dev/review falls back to `http://127.0.0.1:1111/new-imgs`
 
-3. just dev~
+4. just dev~
   ```
   make dev
   ```
 
-4. review a PR branch locally
+5. review a PR branch locally
   ```
   make review-pr BRANCH=tag-hide-and-baby-complement-pr
   ```
@@ -83,7 +99,7 @@ try to reset your config setting by url paramerter `reset=1`:
   * the printed launcher path is a script file; to execute it on macOS, run it from Terminal/Finder or use the printed `open -a Safari "..."` command
   * if you want the helper to launch Safari automatically, run it with `OPEN_SAFARI=1`
 
-5. advanced: keep a shared local dev branch outside your PR branches
+6. advanced: keep a shared local dev branch outside your PR branches
 
   see [`LOCAL_DEV_WORKFLOW.md`](./LOCAL_DEV_WORKFLOW.md) for the full branch model and review workflow
 

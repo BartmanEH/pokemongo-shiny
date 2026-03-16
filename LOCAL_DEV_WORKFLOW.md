@@ -6,30 +6,38 @@ This repo uses a split workflow so local testing support does not leak into pull
 
 For future work, start feature branches from your fork `main`.
 
+On each new workstation, bootstrap the clone-local helper files from `env/local-dev`:
+
+```sh
+git switch env/local-dev
+make install-local-review
+```
+
 From a feature branch, the default local live test command is:
 
 ```sh
-make live-test
+OPEN_SAFARI=1 ./tasks/local-live-test.sh
 ```
 
 That command:
 
 - assumes your current branch is the feature branch you want to review
+- switches into `env/local-dev` only for the review workflow
 - rebuilds a local `test/...` branch from `env/local-dev` by default
 - opens Safari automatically unless `OPEN_SAFARI=0`
-- reuses the saved Safari query flow from `tasks/review-pr.sh`
+- reuses the saved local Safari query file
 - prints the exact `Review URL`, `Safari URL`, and Safari launcher path
 
 Common variants:
 
 ```sh
-IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' make live-test
-BRANCH=feature/my-change make live-test
-OPEN_SAFARI=0 make live-test
-USE_TEST_BRANCH=0 make live-test
+IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' OPEN_SAFARI=1 ./tasks/local-live-test.sh
+OPEN_SAFARI=0 ./tasks/local-live-test.sh
+OPEN_SAFARI=1 ./tasks/local-live-test.sh feature/my-change
 ```
 
-If you are currently on `main`, `env/local-dev`, or `test/...`, pass `BRANCH=feature/...`.
+If you are currently on `main`, `env/local-dev`, or `test/...`, pass the feature branch explicitly.
+Re-run `FORCE=1 make install-local-review` on `env/local-dev` if you want to refresh the ignored local files from the tracked templates.
 
 The rest of this file documents the more explicit branch-splitting workflow and the older `prepare-test` flow.
 

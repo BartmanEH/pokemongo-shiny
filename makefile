@@ -16,6 +16,9 @@ review-pr:
 live-test:
 	./tasks/live-test.sh "$(BRANCH)";
 
+install-local-review:
+	./tasks/install-local-review.sh;
+
 prepare-test:
 	./tasks/prepare-test-branch.sh "$(BRANCH)" "$(TEST_BRANCH)";
 

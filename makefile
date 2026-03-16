@@ -13,6 +13,9 @@ build:
 review-pr:
 	./tasks/review-pr.sh "$(BRANCH)";
 
+live-test:
+	./tasks/live-test.sh "$(BRANCH)";
+
 prepare-test:
 	./tasks/prepare-test-branch.sh "$(BRANCH)" "$(TEST_BRANCH)";
 

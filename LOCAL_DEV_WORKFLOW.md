@@ -24,9 +24,14 @@ That command:
 - assumes your current branch is the feature branch you want to review
 - switches into `env/local-dev` only for the review workflow
 - rebuilds a local `test/...` branch from `env/local-dev` by default
+- asks whether to pull a fresh query from checklist sheet `B2`
+- updates `tasks/local-shiny-checklist.query.txt` if you answer yes
 - opens Safari automatically unless `OPEN_SAFARI=0`
 - reuses the saved local Safari query file
 - prints the exact `Review URL`, `Safari URL`, and Safari launcher path
+
+The important thing being tested is the rebuilt `test/...` branch, not the raw `feature/...` branch.
+If that rebuild fails, stop and fix or recover the local test branch instead of silently treating the raw feature branch as equivalent.
 
 Common variants:
 
@@ -218,8 +223,14 @@ The review helper:
   - cell `B2` of the checklist sheet export
 - keeps the local review server running until you stop it
 
-On the first load for a branch, use the printed URL with `?reset=1`.
-That clears stale browser config in localStorage before applying your `.env.local` defaults again.
+Normal local test flow:
+
+- use the printed `Safari URL` or the printed `open -a Safari "..."` command for the actual checklist test
+- treat the printed `Review URL` with `?reset=1` as a troubleshooting URL, not as a required first step
+- use `?reset=1` only when stale `localStorage` is likely interfering with the branch you are testing:
+  - wrong custom source URL
+  - wrong saved sidebar or visibility config
+  - page still looks blank after switching between different local-review setups
 
 If you want Safari specifically instead of the default browser, use the printed `open -a Safari "..."` command, run the printed launcher script from Terminal or Finder, or set `OPEN_SAFARI=1`.
 When run interactively, the helper can generate the Safari URL at runtime by refreshing the query from a pasted TinyURL/full URL or from checklist sheet cell `B2`.
@@ -264,25 +275,43 @@ This is almost always a local review setup issue, not a reason to panic about th
 
 Check these in order:
 
-1. Rebuild the local test branch from the current dev baseline and current feature branch:
+1. Make sure you are testing the local-review branch, not the raw feature branch.
+
+If this feature depends on `env/local-dev` support, the thing to review is `test/my-change` or an equivalent commit built from `env/local-dev` plus the feature commits.
+The raw `feature/...` branch can still show only the header or no visible groups because it may rely on local-dev-only fixes such as the JS `visible_groups` fallback.
+
+2. Rebuild the local test branch from the current dev baseline and current feature branch:
 
 ```sh
 RESET=1 make prepare-test BRANCH=feature/my-change
 ```
 
-2. Start a fresh review server, preferably on a fresh port so you are not looking at an older stale run:
+If `make prepare-test` fails, stop there and fix or recover the local test branch.
+Do not silently fall back to testing the raw feature branch and assume it means the same thing.
+
+3. Start a fresh review server, preferably on a fresh port so you are not looking at an older stale run:
 
 ```sh
 APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
 ```
 
-3. Open the exact review URL with `?reset=1` on the first load:
+If this machine does not have a local image host, force the CDN image base:
 
-```text
-http://127.0.0.1:4177/pokemongo-shiny/?reset=1
+```sh
+IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
 ```
 
-4. If you want Safari, run one of the printed launch commands, for example:
+4. Use the printed Safari URL or `open -a Safari "..."` command for the actual checklist state you want to inspect.
+
+5. Only use the `?reset=1` URL if stale browser config still looks likely after the steps above.
+
+That usually means:
+
+- wrong custom data source
+- wrong saved visibility state
+- stale local settings surviving from another branch or another local-review run
+
+6. If you want Safari, run one of the printed launch commands, for example:
 
 ```sh
 open -a Safari "http://127.0.0.1:4177/pokemongo-shiny/?..."
@@ -293,8 +322,6 @@ or rerun the helper with:
 ```sh
 OPEN_SAFARI=1 APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
 ```
-
-5. Make sure you are testing the `test/...` branch if you need `env/local-dev` support.
 
 Symptoms this usually fixes:
 
@@ -308,7 +335,7 @@ If the page loads but is using the wrong spreadsheet or old local settings:
 
 - make sure `.env.local` exists
 - make sure it sets `VITE_PM_SOURCE_URL` and `VITE_PM_SOURCE_TYPE`
-- load the page once with `?reset=1`
+- only use `?reset=1` if you need to clear stale saved config before reloading
 
 ### Wrong images
 
@@ -378,5 +405,17 @@ OPEN_SAFARI=1 APP_MODE=preview APP_PORT=4177 IMAGE_DIR=./tasks/tmp make review-p
 # same Safari flow, but with CDN images
 OPEN_SAFARI=1 IMAGE_BASE_URL='https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets/Images/Pokemon%20-%20256x256/Addressable%20Assets' APP_MODE=preview APP_PORT=4177 make review-pr BRANCH=test/my-change
 
+# use the printed Safari URL/open command for the real checklist test
+
+# only use the printed ?reset=1 Review URL when stale localStorage is likely involved
+
 # open PR from feature/my-change
+```
+
+## Asking Codex
+
+If you want Codex to run the correct local test flow without rediscovering the setup, use a prompt like this:
+
+```text
+Run the documented local test flow for `feature/my-change` in `/Users/bastianstassen/pokemongo-shiny`.
 ```

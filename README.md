@@ -40,9 +40,14 @@ try to reset your config setting by url paramerter `reset=1`:
   * assumes your current branch is the feature branch you want to review
   * switches into `env/local-dev` only for the review workflow
   * rebuilds a local `test/...` branch from `env/local-dev` by default
+  * asks whether to pull a fresh query from checklist sheet `B2`
+  * updates `tasks/local-shiny-checklist.query.txt` if you answer yes
   * opens Safari automatically unless `OPEN_SAFARI=0`
   * uses the saved Safari query flow through the local query file
   * prints the exact `Review URL`, `Safari URL`, and Safari launcher path
+
+  the important thing being tested is the rebuilt `test/...` branch, not the raw `feature/...` branch.
+  if that rebuild fails, stop and fix or recover the local test branch instead of silently treating the raw feature branch as equivalent.
 
   common variants:
   ```
@@ -98,6 +103,8 @@ try to reset your config setting by url paramerter `reset=1`:
   * if you skip the refresh prompt, or disable it, the helper falls back to the saved query file and still prints the resulting `Safari URL`
   * the printed launcher path is a script file; to execute it on macOS, run it from Terminal/Finder or use the printed `open -a Safari "..."` command
   * if you want the helper to launch Safari automatically, run it with `OPEN_SAFARI=1`
+  * use the printed `Safari URL` / `open -a Safari "..."` command for the actual checklist test; treat the printed `Review URL` with `?reset=1` as troubleshooting only
+  * only use `?reset=1` when stale saved config is likely interfering, for example the wrong custom data source or stale visibility settings
 
 6. advanced: keep a shared local dev branch outside your PR branches
 
@@ -134,8 +141,14 @@ try to reset your config setting by url paramerter `reset=1`:
   * open PRs from `feature/...`
   * do not open PRs from `env/local-dev`
   * do not open PRs from `test/...`
-  * if local review ever shows a blank page or no visible squircles, rebuild the `test/...` branch from the current `env/local-dev` and feature branch, then reopen the printed `?reset=1` URL on a fresh port
+  * if local review ever shows a blank page or no visible squircles, first make sure you are testing `test/...` rather than the raw `feature/...` branch; then rebuild the `test/...` branch from the current `env/local-dev` and feature branch on a fresh port
+  * use the printed `?reset=1` Review URL only if stale browser config still looks likely after switching to the correct `test/...` branch
   * keep fork-only helpers such as `tasks/shiny-checklist.query.txt` on `env/local-dev`, not on upstream PR branches
+
+7. asking Codex to run the local test flow
+  ```
+  Run the documented local test flow for `feature/my-change` in `/Users/bastianstassen/pokemongo-shiny`.
+  ```
 
 
 ## 3. For updating shiny list data:

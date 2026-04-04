@@ -20,6 +20,9 @@ Environment:
   IMAGE_PORT=1111           port for the optional image server
   REVIEW_URL_PATH=...       default: /?reset=1
   SAFARI_QUERY_FILE=...     optional query file for the Safari launcher
+  SAFARI_QUERY_REFRESH_MODE=ask|keep|sheet_b2|url
+                            optional noninteractive Safari query refresh mode
+  SAFARI_QUERY_SOURCE_URL=... optional source URL when SAFARI_QUERY_REFRESH_MODE=url
   PROMPT_FOR_QUERY_UPDATE=1 ask whether to refresh the Safari query from a URL or sheet B2
   OPEN_SAFARI=1             launch Safari automatically after the app server is ready
   KEEP_WORKTREE=1           keep the temp worktree after the script exits
@@ -40,6 +43,8 @@ IMAGE_PORT="${IMAGE_PORT:-1111}"
 REVIEW_URL_PATH="${REVIEW_URL_PATH:-/pokemongo-shiny/?reset=1}"
 PROMPT_FOR_QUERY_UPDATE="${PROMPT_FOR_QUERY_UPDATE:-1}"
 OPEN_SAFARI="${OPEN_SAFARI:-0}"
+SAFARI_QUERY_REFRESH_MODE="${SAFARI_QUERY_REFRESH_MODE:-ask}"
+SAFARI_QUERY_SOURCE_URL="${SAFARI_QUERY_SOURCE_URL:-}"
 
 repo_root="$(git rev-parse --show-toplevel)"
 timestamp="$(date +%Y%m%d-%H%M%S)"
@@ -209,7 +214,44 @@ function maybe_update_safari_query_file() {
 	esac
 }
 
-maybe_update_safari_query_file
+function maybe_apply_safari_query_refresh_mode() {
+	local mode="${SAFARI_QUERY_REFRESH_MODE:l}"
+
+	case "${mode}" in
+		""|ask)
+			return 1
+			;;
+		keep|n|no|0|false)
+			echo "Keeping existing Safari query file: ${SAFARI_QUERY_FILE}"
+			return 0
+			;;
+		b|b2|sheet|sheet_b2|google_sheet|y|yes)
+			if ! save_safari_query_from_sheet_b2; then
+				echo "Keeping existing Safari query file." >&2
+			fi
+			return 0
+			;;
+		u|url)
+			if [[ -z "${SAFARI_QUERY_SOURCE_URL}" ]]; then
+				echo "SAFARI_QUERY_SOURCE_URL is required when SAFARI_QUERY_REFRESH_MODE=url" >&2
+				echo "Keeping existing Safari query file." >&2
+				return 0
+			fi
+			if ! save_safari_query_from_url "${SAFARI_QUERY_SOURCE_URL}"; then
+				echo "Keeping existing Safari query file." >&2
+			fi
+			return 0
+			;;
+		*)
+			echo "Unknown SAFARI_QUERY_REFRESH_MODE: ${SAFARI_QUERY_REFRESH_MODE}" >&2
+			return 1
+			;;
+	esac
+}
+
+if ! maybe_apply_safari_query_refresh_mode; then
+	maybe_update_safari_query_file
+fi
 
 resolved_ref="$(resolve_ref "${branch_ref}")"
 

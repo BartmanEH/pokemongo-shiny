@@ -38,7 +38,7 @@ start_branch="$(git branch --show-current)"
 feature_branch="${1:-${BRANCH:-${start_branch}}}"
 local_safari_query_file="${SAFARI_QUERY_FILE:-${repo_root}/tasks/local-shiny-checklist.query.txt}"
 prompt_for_query_update="${PROMPT_FOR_QUERY_UPDATE:-1}"
-query_refresh_mode="${SAFARI_QUERY_REFRESH_MODE:-ask}"
+query_refresh_mode="${SAFARI_QUERY_REFRESH_MODE:-sheet_b2}"
 open_safari="${OPEN_SAFARI:-1}"
 image_base_url="${IMAGE_BASE_URL:-}"
 

@@ -3,7 +3,7 @@
 	import { i18n } from '@lib/i18n.svelte.js';
 </script>
 
-<label class="btn-icon ctrl-btn hide-for-print" for="ctrl-checkbox" style="bottom:1rem">
+<label class="btn-icon ctrl-btn hide-for-print" for="ctrl-checkbox">
 	⚙️
 	<span class="sr-only-u">
 		toggle control panel
@@ -11,7 +11,7 @@
 </label>
 
 
-<button class="btn-icon record-btn hide-for-print" style="bottom:3rem"
+<button class="btn-icon record-btn hide-for-print"
 	onclick={recorder.add_current}
 	title={i18n.t('record.save')}
 >
@@ -21,7 +21,7 @@
 	</span>
 </button>
 
-<label class="btn-icon locker-btn hide-for-print" for="list-locker" style="bottom: 5rem">
+<label class="btn-icon locker-btn hide-for-print" for="list-locker">
 	<span class="sr-only-u">
 		Lock
 	</span>
@@ -35,21 +35,20 @@
 		--float-btn-size: clamp(40px, 9vw, 56px);
 		--float-btn-gap: clamp(8px, 2vw, 14px);
 		--float-btn-left: calc(min(3vw, 1em) + 4px);
+		--float-btn-bottom: calc(clamp(64px, 14vw, 88px) + env(safe-area-inset-bottom, 0px));
 	}
 
 	.ctrl-btn {
-		bottom: 1rem;
+		bottom: var(--float-btn-bottom);
 	}
 
 	.record-btn {
-		bottom: calc(1rem + var(--float-btn-size) + var(--float-btn-gap));
+		bottom: calc(var(--float-btn-bottom) + var(--float-btn-size) + var(--float-btn-gap));
 		left: calc(var(--float-btn-left) + var(--float-btn-size) + var(--float-btn-gap));
-		translate: 0 calc(2rem - var(--float-btn-size) - var(--float-btn-gap));
 	}
 
 	.locker-btn {
-		bottom: calc(1rem + (var(--float-btn-size) + var(--float-btn-gap)) * 2);
-		translate: 0 calc(4rem - (var(--float-btn-size) + var(--float-btn-gap)) * 2);
+		bottom: calc(var(--float-btn-bottom) + (var(--float-btn-size) + var(--float-btn-gap)) * 2);
 
 		&::before {
 			content: var(--locker-icon, '🔓');
